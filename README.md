@@ -6,4 +6,4 @@ Feature:
 - Time stamp required for crawling method later than that time 
 - javadoc handling from  paper: theVault, Jdoctor
  
-Quick start from `experiment.py`
+For quick start run python file from `experiment.py`
