@@ -24,7 +24,7 @@ def getRepo(repo,username):
     local_path = f'./repos/{repo}'
     # Clone the repository if it doesn't exist locally
     if not os.path.exists(local_path):
-        x=1/0
+        git.Repo.clone_from(repo_url, local_path)
     repo = git.Repo(local_path)
     return repo
 def findJavafile(root,javafiles,depth=0):
