@@ -2,6 +2,5 @@ repos
 *.json
 *.jsonl
 *.java
-repos_list.txt
 toy.txt
 *.ipynb

@@ -5,6 +5,20 @@ from datetime import datetime
 import javalang
 import re
 import json
+import enchant
+def checkEnglish(string):
+    
+    list_string=string.split()
+    count=len(list_string)
+    englishword=0
+    checker=enchant.Dict('en_US')
+    for word in list_string:
+        if checker.check(word):
+            englishword+=1
+    if 2*englishword-count>0:
+        return True
+    else:
+        return False
 def getRepo(repo,username):
     repo_url = f'https://github.com/{username}/{repo}.git'
     local_path = f'./repos/{repo}'
@@ -19,6 +33,8 @@ def findJavafile(root,javafiles,depth=0):
         return 
     for file in root:
         if file.path.endswith(".java"):
+            if "test" in file.path:
+                return
             javafiles.append(file.path)
             
         elif file.type=='tree':
@@ -94,8 +110,7 @@ def parse_javadoc(input_string):
 
     # Use the re.sub function to replace matched tags with their content
     parsed_string = re.sub(tag_pattern, replace_tag, input_string)
-    return remove_html_tags(parsed_string
-)
+    return remove_html_tags(parsed_string)
 
 def get_replacement_for_tag(tag_name, tag_content):
     # Define replacement logic for specific tags
@@ -123,8 +138,10 @@ def getDoc(docnode):
         #     if parse_javadoc(doc.return_doc).startswith("return") or parse_javadoc(doc.return_doc).startswith("Return"):
         #         ret+="return "
         #     ret+="return "+parse_javadoc(doc.return_doc)
-        
-        return ret.replace("\n","")
+        if checkEnglish(ret):
+            return ret.replace("\n","")
+        else:
+            return None
     else:
         return None
 
@@ -152,11 +169,11 @@ def getNewmethod(repo,sha_list,javafiles):
                         if not node.name in existed_method:
                             
                             if  getDoc(node.documentation) != ""and node.body !=None and len(node.body)>=2:
-                                if len(getDoc(node.documentation))>4:
-                                    new_doc.append(getDoc(node.documentation))
-                                    new_method.append(getMethod(node,file_content))
+                            
+                                new_doc.append(getDoc(node.documentation))
+                                new_method.append(getMethod(node,file_content))
 
-                                    existed_method.append(node.name)
+                                existed_method.append(node.name)
                 except Exception as e:
                     print(e)
         methods.append(new_method)
@@ -176,11 +193,10 @@ def writeData(username,reponame,java_files,methods,docs,out):
                 'source':method,
                 'target':doc
             })
-    # if data==[]:
-    #     shutil.rmtree("./repos/"+reponame)
     with open(out,'a+')as f:
         for dt in data:
             f.write(json.dumps(dt)+"\n")
+    shutil.rmtree("./repos/"+reponame)
 
 import shutil
 def getData(reponame,username,time_unix=1609434000,output_file="./data.jsonl"):
@@ -206,7 +222,7 @@ def getData(reponame,username,time_unix=1609434000,output_file="./data.jsonl"):
     print(docs)
     #write
     print("writing data file")
-    writeData(username,reponame,java_files,methods,docs,output)
+    writeData(username,reponame,java_files,methods,docs,output_file)
     #delete repo
     #shutil.rmtree("./repos/"+reponame)
     
