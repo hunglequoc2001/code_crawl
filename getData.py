@@ -47,7 +47,9 @@ def getSHAcommit(repo,files,time):
         for commit in repo.iter_commits(paths=file_path):
             if int(commit.committed_date)< time:
                 file_history.append(commit.hexsha)
+                
                 break
+            
             file_history.append(commit.hexsha)
             # commit_info = {
             #     'commit_sha': commit.hexsha,
@@ -134,10 +136,13 @@ def getDoc(docnode):
         #         ret+=parse_javadoc(param[1])+", "
             
         ret+=parse_javadoc(doc.description)+" "
-        # if not doc.return_doc is None:
-        #     if parse_javadoc(doc.return_doc).startswith("return") or parse_javadoc(doc.return_doc).startswith("Return"):
-        #         ret+="return "
-        #     ret+="return "+parse_javadoc(doc.return_doc)
+        for param in doc.params:
+            ret+=param[0]+" "+parse_javadoc(param[1])+" "
+        
+        if not doc.return_doc is None:
+            if not (parse_javadoc(doc.return_doc).startswith("return") or parse_javadoc(doc.return_doc).startswith("Return")):
+                ret+="return "
+            ret+=parse_javadoc(doc.return_doc)
         if checkEnglish(ret):
             return ret.replace("\n","")
         else:
@@ -148,9 +153,13 @@ def getDoc(docnode):
 def getNewmethod(repo,sha_list,javafiles):
     methods=[]
     docs=[]
+    sha_methods=[]
+    authors=[]
     for file, sha in zip(javafiles,sha_list):
         new_method=[]
         new_doc=[]
+        new_sha_methods=[]
+        new_author=[]
         existed_method=[]
         if len(sha)>1:
             try:
@@ -163,14 +172,18 @@ def getNewmethod(repo,sha_list,javafiles):
                 continue
             for commithex in sha[:-1]:
                 try:
+                    commit=repo.commit(commithex)
+                    author=commit.author.name
                     file_content = repo.git.show(f"{commithex}:{file}")
                     tree = javalang.parse.parse(file_content)
                     for _,node in tree.filter(javalang.tree.MethodDeclaration):
                         if not node.name in existed_method:
                             
                             if  getDoc(node.documentation) != ""and node.body !=None and len(node.body)>=2:
-                            
-                                new_doc.append(getDoc(node.documentation))
+                                new_sha_methods.append(commithex)
+                                new_author.append(author)
+                                new_doc.append(node.documentation)
+                                #new_doc.append(getDoc(node.documentation))
                                 new_method.append(getMethod(node,file_content))
 
                                 existed_method.append(node.name)
@@ -178,25 +191,29 @@ def getNewmethod(repo,sha_list,javafiles):
                     print(e)
         methods.append(new_method)
         docs.append(new_doc)
+        sha_methods.append(new_sha_methods)
+        authors.append(new_author)
         #print(methods,docs)
-    return methods,docs
+    return methods,docs,sha_methods,authors
 import shutil
-def writeData(username,reponame,java_files,methods,docs,out):
+def writeData(username,reponame,java_files,methods,docs,out,sha_methods,authors):
     data=[]
-    for file,new_methods,new_docs in zip(java_files,methods,docs):
-        for method,doc in zip(new_methods,new_docs):
+    for file,new_methods,new_docs,new_sha_methods,new_authors in zip(java_files,methods,docs,sha_methods,authors):
+        for method,doc,sha_method,author in zip(new_methods,new_docs,new_sha_methods,new_authors):
             if doc ==None:
                 continue
             data.append({
                 'repo':username+"/"+reponame,
                 'file':file,
                 'source':method,
-                'target':doc
+                'target':doc,
+                'sha':sha_method,
+                'author':author
             })
     with open(out,'a+')as f:
         for dt in data:
             f.write(json.dumps(dt)+"\n")
-    shutil.rmtree("./repos/"+reponame)
+    #shutil.rmtree("./repos/"+reponame)
 
 import shutil
 def getData(reponame,username,time_unix=1609434000,output_file="./data.jsonl"):
@@ -218,11 +235,11 @@ def getData(reponame,username,time_unix=1609434000,output_file="./data.jsonl"):
     sha=getSHAcommit(repo,java_files,time_unix)
     print('getting methods and documents')
     #get new method
-    methods,docs=getNewmethod(repo,sha,java_files)
+    methods,docs,sha_methods,authors=getNewmethod(repo,sha,java_files)
     print(docs)
     #write
     print("writing data file")
-    writeData(username,reponame,java_files,methods,docs,output_file)
+    writeData(username,reponame,java_files,methods,docs,output_file,sha_methods,authors)
     #delete repo
     #shutil.rmtree("./repos/"+reponame)
     
