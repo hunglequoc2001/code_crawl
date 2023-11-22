@@ -1,5 +1,5 @@
 # code_crawl
-crawl code for code summarization dataset
+crawl code for code summarization dataset focus on distribution shift of data related to time and author
 
 Features:
 - Crawl for Java only
