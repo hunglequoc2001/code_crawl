@@ -7,5 +7,5 @@ Feature:
 - javadoc handling from  paper: theVault, Jdoctor
  
 For quick start
-- install libraries from 'requirements.txt'
+- install libraries from `requirements.txt`
 - run python file from `experiment.py`
