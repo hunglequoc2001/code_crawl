@@ -43,14 +43,14 @@ def findJavafile(root,javafiles,depth=0):
 def getSHAcommit(repo,files,time):
     sha=[]
     for file_path in files:
-        file_history = []
+        file_history = [repo.iter_commits(paths=file_path)[0]]
         for commit in repo.iter_commits(paths=file_path):
             if int(commit.committed_date)< time:
                 file_history.append(commit.hexsha)
                 
                 break
-            
-            file_history.append(commit.hexsha)
+        if len(file_history)==1:
+            file_history.append(repo.iter_commits(paths=file_path)[-1])
             # commit_info = {
             #     'commit_sha': commit.hexsha,
             #     'commit_message': commit.message.strip(),
@@ -155,11 +155,13 @@ def getNewmethod(repo,sha_list,javafiles):
     docs=[]
     sha_methods=[]
     authors=[]
+    time=[]
     for file, sha in zip(javafiles,sha_list):
         new_method=[]
         new_doc=[]
         new_sha_methods=[]
         new_author=[]
+        new_time=[]
         existed_method=[]
         if len(sha)>1:
             try:
@@ -180,6 +182,7 @@ def getNewmethod(repo,sha_list,javafiles):
                         if not node.name in existed_method:
                             
                             if  getDoc(node.documentation) != ""and node.body !=None and len(node.body)>=2:
+                                new_time.append(commit.committed_date)
                                 new_sha_methods.append(commithex)
                                 new_author.append(author)
                                 new_doc.append(node.documentation)
@@ -235,12 +238,12 @@ def getData(reponame,username,time_unix=1609434000,output_file="./data.jsonl"):
     sha=getSHAcommit(repo,java_files,time_unix)
     print('getting methods and documents')
     #get new method
-    methods,docs,sha_methods,authors=getNewmethod(repo,sha,java_files)
+    methods,docs,sha_methods,authors,time=getNewmethod(repo,sha,java_files)
     print(docs)
     #write
     print("writing data file")
-    writeData(username,reponame,java_files,methods,docs,output_file,sha_methods,authors)
+    writeData(username,reponame,java_files,methods,docs,output_file,sha_methods,authors,time)
     #delete repo
-    #shutil.rmtree("./repos/"+reponame)
+    shutil.rmtree("./repos/"+reponame)
     
     
