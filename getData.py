@@ -19,9 +19,9 @@ def checkEnglish(string):
         return True
     else:
         return False
-def getRepo(repo,username):
+def getRepo(repo,username,local='repos'):
     repo_url = f'https://github.com/{username}/{repo}.git'
-    local_path = f'./repos/{repo}'
+    local_path = f'./{local}/{repo}'
     # Clone the repository if it doesn't exist locally
     if not os.path.exists(local_path):
         git.Repo.clone_from(repo_url, local_path)
@@ -192,17 +192,18 @@ def getNewmethod(repo,sha_list,javafiles):
                                 existed_method.append(node.name)
                 except Exception as e:
                     print(e)
+        time.append(new_time)
         methods.append(new_method)
         docs.append(new_doc)
         sha_methods.append(new_sha_methods)
         authors.append(new_author)
         #print(methods,docs)
-    return methods,docs,sha_methods,authors
+    return methods,docs,sha_methods,authors,time
 import shutil
-def writeData(username,reponame,java_files,methods,docs,out,sha_methods,authors):
+def writeData(username,reponame,java_files,methods,docs,out,sha_methods,authors,times):
     data=[]
-    for file,new_methods,new_docs,new_sha_methods,new_authors in zip(java_files,methods,docs,sha_methods,authors):
-        for method,doc,sha_method,author in zip(new_methods,new_docs,new_sha_methods,new_authors):
+    for file,new_methods,new_docs,new_sha_methods,new_authors,new_times in zip(java_files,methods,docs,sha_methods,authors,times):
+        for method,doc,sha_method,author,time in zip(new_methods,new_docs,new_sha_methods,new_authors,new_times):
             if doc ==None:
                 continue
             data.append({
@@ -211,7 +212,8 @@ def writeData(username,reponame,java_files,methods,docs,out,sha_methods,authors)
                 'source':method,
                 'target':doc,
                 'sha':sha_method,
-                'author':author
+                'author':author,
+                'time':time
             })
     with open(out,'a+')as f:
         for dt in data:
@@ -219,11 +221,11 @@ def writeData(username,reponame,java_files,methods,docs,out,sha_methods,authors)
     #shutil.rmtree("./repos/"+reponame)
 
 import shutil
-def getData(reponame,username,time_unix=1609434000,output_file="./data.jsonl"):
+def getData(reponame,username,time_unix=1609434000,output_file="./data.jsonl",local='repos'):
     #get repo
     print("getting repo")
     try:
-        repo=getRepo(reponame,username)
+        repo=getRepo(reponame,username,local)
     except Exception as e:
         exception_message = str(e)
         print("Exception Message:", exception_message)
