@@ -43,14 +43,14 @@ def findJavafile(root,javafiles,depth=0):
 def getSHAcommit(repo,files,time):
     sha=[]
     for file_path in files:
-        file_history = [repo.iter_commits(paths=file_path)[0]]
+        file_history = [list(repo.iter_commits(paths=file_path))[0]]
         for commit in repo.iter_commits(paths=file_path):
             if int(commit.committed_date)< time:
                 file_history.append(commit.hexsha)
                 
                 break
         if len(file_history)==1:
-            file_history.append(repo.iter_commits(paths=file_path)[-1])
+            file_history.append(list(repo.iter_commits(paths=file_path))[-1])
             # commit_info = {
             #     'commit_sha': commit.hexsha,
             #     'commit_message': commit.message.strip(),
@@ -205,7 +205,7 @@ def getNewmethod(repo,sha_list,javafiles):
                             
                             if  getDoc(node.documentation) != ""and node.body !=None and len(node.body)>=2:
                                 new_time.append(commit.committed_date)
-                                new_sha_methods.append(commithex)
+                                new_sha_methods.append(str(commithex))
                                 new_author.append(author)
                                 new_doc.append(node.documentation)
                                 #new_doc.append(getDoc(node.documentation))
@@ -266,8 +266,10 @@ def getData(reponame,username,time_unix=1609434000,output_file="./data.jsonl",lo
     print(docs)
     #write
     print("writing data file")
+    
     writeData(username,reponame,java_files,methods,docs,output_file,sha_methods,authors,time)
     #delete repo
-    shutil.rmtree("./repos/"+reponame)
+    #shutil.rmtree("./repos/"+reponame)
+    
     
     
