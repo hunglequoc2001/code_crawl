@@ -163,6 +163,28 @@ def getNewmethod(repo,sha_list,javafiles):
         new_author=[]
         new_time=[]
         existed_method=[]
+        # un-comment this and comment the later block if you want to crawl all method without time constrain
+        # if len(sha)>=1:
+        #     for commithex in sha[:-1]:
+        #         try:
+        #             commit=repo.commit(commithex)
+        #             author=commit.author.name
+        #             file_content = repo.git.show(f"{commithex}:{file}")
+        #             tree = javalang.parse.parse(file_content)
+        #             for _,node in tree.filter(javalang.tree.MethodDeclaration):
+        #                 if not node.name in existed_method:
+                            
+        #                     if  getDoc(node.documentation) != ""and node.body !=None and len(node.body)>=2:
+        #                         new_time.append(commit.committed_date)
+        #                         new_sha_methods.append(str(commithex))
+        #                         new_author.append(author)
+        #                         new_doc.append(node.documentation)
+        #                         #new_doc.append(getDoc(node.documentation))
+        #                         new_method.append(getMethod(node,file_content))
+
+        #                         existed_method.append(node.name)
+        #         except Exception as e:
+        #             print(e)
         if len(sha)>1:
             try:
                 file_content = repo.git.show(f"{sha[-1]}:{file}")
