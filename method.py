@@ -6,5 +6,5 @@ class crawlMethod:
     def crawl(self,time=1609434000,out="./data.jsonl",delete=True):
         hex= getData(self.reponame,self.username,time,out)
         if delete:
-            shutil.rmtree("./repos/"+reponame)
+            shutil.rmtree("./repos/"+self.reponame)
         return hex
