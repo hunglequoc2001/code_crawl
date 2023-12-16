@@ -1,4 +1,4 @@
-from getData import getData
+from .getData import getData
 class crawlMethod:
     def __init__(self,reponame,username):
         self.reponame=reponame
